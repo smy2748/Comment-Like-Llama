@@ -4,56 +4,91 @@ import java.util.HashMap;
  * Created by Stephen Yingling on 4/25/14.
  */
 public class MChain {
-    protected MNode start;
-    protected HashMap<String, MNode> nodes;
+    protected MSubChain subChains[];
+    protected int n_grams;
 
 
-    public MChain(){
-        start = new MNode(((char)2) + "");
-        nodes = new HashMap<String, MNode>();
-        nodes.put(((char)2) + "", start);
+    public MChain(int n_grams){
+        this.n_grams = n_grams;
+        subChains = new MSubChain[n_grams];
+        for(int i= 0; i< n_grams; i++){
+            subChains[i] = new MSubChain(n_grams-i);
+        }
     }
 
-    public void addContext(String text){
-        String trimmed = text.replaceAll("\n"," ").trim();
-        String [] words = trimmed.split(" ");
-
-        MNode cur = start, next;
-        for(String s : words){
-            if(!s.equals("")){
-
-                if(!nodes.containsKey(s)){
-                    next = new MNode(s);
-                    nodes.put(s,next);
-                }
-                else{
-                    next = nodes.get(s);
-                }
-                cur.addConnection(next);
-                cur = next;
-            }
+    public void addContext(String str){
+        for (MSubChain chain: subChains){
+            chain.addContext(str);
         }
     }
 
     public void finalizeChain(){
-        for(MNode m : nodes.values()){
-            m.constructTransitions();
+        for (MSubChain chain: subChains){
+            chain.finalizeChain();
         }
     }
 
     public String genString(){
-        MNode cur = start;
         StringBuilder res = new StringBuilder();
-        long count =0;
-        while (cur != null && count < 140){
-            cur = cur.getNext();
-            if(cur != null){
-                res.append(cur.getData());
-                res.append(" ");
+        long count=0;
+        String cur = subChains[0].randomVal();
+        String next="", tempCur;
+
+        while (count <140){
+            tempCur = cur.toString();
+
+            for(int i=subChains.length-joinedWords(cur); i<subChains.length; i++){
+                next = subChains[i].calcNext(tempCur);
+                if (!next.equals("")){
+                    res.append(next);
+                    res.append(" ");
+                    break;
+                }
+                else{
+                    tempCur = shrinkJoined(tempCur);
+                }
             }
+
+            if (next.equals("")){
+                //TODO: Look up new shit
+            }
+            else{
+                cur = reJoin(tempCur,next);
+            }
+
             count++;
         }
 
         return res.toString();
     }
-}
+
+    private String reJoin(String existing, String next){
+        String temp[] = existing.split("_");
+        StringBuilder result = new StringBuilder();
+        for(int i=1; i< temp.length; i++){
+            result.append(temp[i] +"_");
+        }
+        result.append(next);
+        return result.toString();
+    }
+
+    private String shrinkJoined(String existing){
+        String temp[] = existing.split("_");
+        if (temp.length <2){
+            return "";
+        }
+        StringBuilder result = new StringBuilder();
+
+        for(int i=0; i< temp.length-1; i++){
+            result.append(temp[i]);
+            result.append("_");
+        }
+        result.deleteCharAt(result.length()-1);
+        return result.toString();
+    }
+
+    private int joinedWords(String words){
+        return words.split("_").length;
+    }
+
+    }

@@ -3,11 +3,11 @@
  */
 public class Transition {
     protected double weight;
-    protected MNode end;
+    protected String end;
 
     public Transition(){}
 
-    public Transition(MNode end, double weight){
+    public Transition(String end, double weight){
         this.weight = weight;
         this.end = end;
     }
@@ -20,11 +20,11 @@ public class Transition {
         this.weight = weight;
     }
 
-    public MNode getEnd() {
+    public String getEnd() {
         return end;
     }
 
-    public void setEnd(MNode end) {
+    public void setEnd(String end) {
         this.end = end;
     }
 }

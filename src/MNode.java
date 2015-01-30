@@ -7,64 +7,64 @@ import java.util.Random;
  */
 public class MNode {
 
-    protected HashMap<MNode, Integer> connecting;
+    protected HashMap<String, Integer> connecting;
     protected ArrayList<Transition> transitions;
     protected String data;
     protected long outGoing = 0;
 
     public MNode(){
-        connecting = new HashMap<MNode, Integer>();
+        connecting = new HashMap<String, Integer>();
         transitions = new ArrayList<Transition>();
     }
 
     public MNode(String data){
-        connecting = new HashMap<MNode, Integer>();
+        connecting = new HashMap<String, Integer>();
         transitions = new ArrayList<Transition>();
         this.data = data;
     }
 
-    public void addConnection(MNode m){
-        if(!connecting.containsKey(m)){
-            connecting.put(m,1);
+    public void addConnection(String str){
+        if(!connecting.containsKey(str)){
+            connecting.put(str,1);
         }
         else{
-            connecting.put(m,connecting.get(m)+1);
+            connecting.put(str,connecting.get(str)+1);
         }
         outGoing++;
     }
 
-    public MNode getNext(){
+    public String getNext(){
         Random r = new Random();
 
         if(transitions.size() <1){
             return null;
         }
 
-        while (true){
-            Transition t = transitions.get(r.nextInt(transitions.size()));
-            double w,ran;
-            w= t.getWeight();
-            ran = r.nextDouble();
-            if(w >= ran){
+        double rand = r.nextDouble(),sum=0;
+        for (Transition t : shuffleTransitions()){
+            sum += t.getWeight();
+            if (sum <rand){
                 return t.getEnd();
             }
         }
+
+        return transitions.get(r.nextInt(transitions.size())).getEnd();
     }
 
     public void constructTransitions(){
         ArrayList<Transition> trans = new ArrayList<Transition>();
-        for(MNode m: connecting.keySet()){
+        for(String m: connecting.keySet()){
             trans.add(new Transition(m,((double)connecting.get(m))/((double) outGoing )));
         }
 
         transitions = trans;
     }
 
-    public HashMap<MNode, Integer> getConnecting() {
+    public HashMap<String, Integer> getConnecting() {
         return connecting;
     }
 
-    public void setConnecting(HashMap<MNode, Integer> connecting) {
+    public void setConnecting(HashMap<String, Integer> connecting) {
         this.connecting = connecting;
     }
 
@@ -82,5 +82,16 @@ public class MNode {
 
     public void setData(String data) {
         this.data = data;
+    }
+
+    private ArrayList<Transition> shuffleTransitions(){
+        ArrayList<Transition> base = new ArrayList<Transition>(transitions);
+        ArrayList<Transition> result = new ArrayList<Transition>();
+        Random r = new Random();
+        for(int i=r.nextInt(base.size()); i< base.size()-1; i=r.nextInt(base.size())){
+            result.add(base.remove(i));
+        }
+        result.add(base.get(0));
+        return result;
     }
 }
